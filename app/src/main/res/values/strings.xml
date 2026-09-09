@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">App Control</string>
+
+    <string name="tile_label_app_control">App Control</string>
+    <string name="tile_state_active">Active</string>
+    <string name="tile_state_inactive">Inactive</string>
+
+    <string name="widget_preview_title">App Control</string>
+    <string name="widget_description">App Control widget</string>
+    <string name="widget_process">Process</string>
+    <string name="widget_protection_active">● Protection active</string>
+    <string name="widget_protection_inactive">● Protection inactive</string>
+
+    <string name="dashboard_title">Dashboard</string>
+    <string name="dashboard_subtitle">Monitor and control your apps</string>
+    <string name="dashboard_overview">Overview</string>
+    <string name="dashboard_quick_actions">Quick Actions</string>
+    <string name="dashboard_recent_activity">Recent Activity</string>
+
+    <string name="applications_title">Applications</string>
+    <string name="applications_search_hint">Search applications</string>
+    <string name="applications_all">All</string>
+    <string name="applications_blocked">Blocked</string>
+    <string name="applications_allowed">Allowed</string>
+    <string name="applications_empty">No applications found</string>
+    <string name="applications_block">Block</string>
+    <string name="applications_unblock">Unblock</string>
+    <string name="applications_allow">Allow</string>
+
+    <string name="profiles_title">Profiles</string>
+    <string name="profiles_create">Create Profile</string>
+    <string name="profiles_edit">Edit Profile</string>
+    <string name="profiles_delete">Delete Profile</string>
+    <string name="profiles_name_hint">Profile name</string>
+    <string name="profiles_empty">No profiles yet</string>
+    <string name="profiles_apps_selected">%1$d apps selected</string>
+
+    <string name="automation_title">Automation</string>
+    <string name="automation_schedules">Schedules</string>
+    <string name="automation_create">Create Schedule</string>
+    <string name="automation_edit">Edit Schedule</string>
+    <string name="automation_delete">Delete Schedule</string>
+    <string name="automation_empty">No schedules yet</string>
+    <string name="automation_rule_name_hint">Rule name</string>
+    <string name="automation_start_time">Start time</string>
+    <string name="automation_end_time">End time</string>
+    <string name="automation_days">Days</string>
+    <string name="automation_active">Active</string>
+
+    <string name="history_title">History</string>
+    <string name="history_empty">No activity recorded yet</string>
+    <string name="history_blocked">Blocked</string>
+    <string name="history_unblocked">Unblocked</string>
+    <string name="history_clear">Clear history</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="settings_general">General</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_notifications_enabled">Enable notifications</string>
+    <string name="settings_about">About</string>
+    <string name="settings_version">Version</string>
+    <string name="settings_battery_optimization">Battery optimization</string>
+    <string name="settings_battery_optimization_summary">Allow app to run in the background</string>
+    <string name="settings_power_saving">Power saving</string>
+
+    <string name="onboarding_title">Welcome to App Control</string>
+    <string name="onboarding_subtitle">Take control of your apps and screen time</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_finish">Get Started</string>
+
+    <string name="permissions_title">Permissions</string>
+    <string name="permissions_request">Grant permissions</string>
+    <string name="permissions_usage_access">Usage access</string>
+    <string name="permissions_usage_access_summary">Required to detect app usage</string>
+    <string name="permissions_ignore_battery">Ignore battery optimization</string>
+    <string name="permissions_ignore_battery_summary">Keep blocking working in the background</string>
+    <string name="permissions_notifications">Notifications</string>
+    <string name="permissions_notifications_summary">Show status updates</string>
+    <string name="permissions_exact_alarm">Exact alarms</string>
+    <string name="permissions_exact_alarm_summary">Schedule precise blocking times</string>
+    <string name="permissions_all_granted">All permissions granted</string>
+
+    <string name="notification_channel_name">App Control</string>
+    <string name="notification_channel_description">App Control notifications</string>
+    <string name="notification_channel_monitoring_name">App Monitoring</string>
+    <string name="notification_channel_general_name">General</string>
+    <string name="notification_blocked_title">App blocked</string>
+    <string name="notification_blocked_body">%1$s was blocked</string>
+    <string name="notification_unblocked_title">App unblocked</string>
+    <string name="notification_unblocked_body">%1$s is now available</string>
+    <string name="notification_schedule_started">Schedule started</string>
+    <string name="notification_schedule_ended">Schedule ended</string>
+
+    <string name="blocking_active">Blocking active</string>
+    <string name="blocking_inactive">Blocking inactive</string>
+    <string name="toggle_blocking">Toggle blocking</string>
+
+    <string name="common_ok">OK</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_save">Save</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_edit">Edit</string>
+    <string name="common_enable">Enable</string>
+    <string name="common_disable">Disable</string>
+    <string name="common_enabled">Enabled</string>
+    <string name="common_disabled">Disabled</string>
+    <string name="common_none">None</string>
+    <string name="common_add">Add</string>
+    <string name="common_remove">Remove</string>
+    <string name="common_apply">Apply</string>
+    <string name="common_close">Close</string>
+    <string name="common_confirm">Confirm</string>
+    <string name="common_error">Error</string>
+    <string name="common_retry">Retry</string>
+    <string name="common_loading">Loading…</string>
+    <string name="common_empty">Nothing here yet</string>
+
+    <string name="delete_confirmation">Are you sure you want to delete this?</string>
+    <string name="unsaved_changes">You have unsaved changes. Exit anyway?</string>
+
+    <string name="night_protection">Night protection</string>
+    <string name="night_protection_summary">Automatically block apps during night hours</string>
+    <string name="night_protection_start">Start time</string>
+    <string name="night_protection_end">End time</string>
+    <string name="night_protection_active">Night protection is active</string>
+    <string name="night_protection_inactive">Night protection is inactive</string>
+
+    <string name="monitoring_stats">Monitoring</string>
+    <string name="monitoring_last_scan">Last check</string>
+    <string name="monitoring_apps_blocked">Apps blocked</string>
+
+    <string name="content_description_app_icon">App Control</string>
+    <string name="content_description_block">Block</string>
+    <string name="content_description_unblock">Unblock</string>
+    <string name="content_description_back">Back</string>
+    <string name="content_description_more">More options</string>
+
+</resources>
