@@ -1,5 +1,6 @@
 package com.appcontrol.data.system
 
+import android.util.Log
 import com.appcontrol.domain.model.StopResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -15,12 +16,16 @@ class ResolvingProcessStopper(
     private val shizukuEnabled: suspend () -> Boolean
 ) : ProcessStopper {
 
+    companion object {
+        private const val TAG = "ResolvingProcessStopper"
+    }
+
     override fun stopPackage(packageName: String): StopResult {
         val useShizuku = runBlocking(Dispatchers.IO) { shizukuEnabled() }
         if (useShizuku && shizukuManager.isAvailable && shizukuManager.isPermissionGranted) {
             when (shizukuManager.forceStop(packageName)) {
                 StopResult.STOPPED -> return StopResult.STOPPED
-                else -> Unit
+                else -> Log.w(TAG, "Shizuku force-stop failed for $packageName; falling back")
             }
         }
         return fallback.stopPackage(packageName)

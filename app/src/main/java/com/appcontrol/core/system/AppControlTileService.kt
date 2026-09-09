@@ -36,7 +36,6 @@ class AppControlTileService : TileService() {
         runCatching {
             val intent = Intent(this, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                putExtra(EXTRA_PROCESS_DASHBOARD, true)
             }
             startActivityAndCollapse(intent)
         }.onFailure {
@@ -58,9 +57,5 @@ class AppControlTileService : TileService() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             runCatching { startActivityAndCollapse(Intent(this, MainActivity::class.java)) }
         }
-    }
-
-    companion object {
-        const val EXTRA_PROCESS_DASHBOARD = "extra_process_dashboard"
     }
 }

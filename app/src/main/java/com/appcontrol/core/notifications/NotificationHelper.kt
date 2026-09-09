@@ -8,8 +8,16 @@ import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.appcontrol.core.common.Constants
+import com.appcontrol.feature.dashboard.MainActivity
 
 class NotificationHelper(private val context: Context) {
+
+    companion object {
+        // Maps a package name to a stable non-negative int within a fixed base range,
+        // avoiding negative notification ids and cross-package collisions.
+        private fun appScopedOffset(packageName: String): Int =
+            Math.floorMod(packageName.hashCode(), 100_000)
+    }
 
     private val notificationManager =
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -42,21 +50,21 @@ class NotificationHelper(private val context: Context) {
     fun showReappearanceNotification(
         packageName: String,
         appName: String,
-        notificationId: Int = Constants.NOTIFICATION_ID_REAPPEARANCE_BASE + packageName.hashCode()
+        notificationId: Int = Constants.NOTIFICATION_ID_REAPPEARANCE_BASE + appScopedOffset(packageName)
     ) {
         val reviewIntent = createReviewIntent(packageName)
         val processIntent = createProcessIntent(packageName)
 
         val reviewPendingIntent = PendingIntent.getBroadcast(
             context,
-            Constants.REQUEST_CODE_REVIEW + packageName.hashCode(),
+            Constants.REQUEST_CODE_REVIEW + appScopedOffset(packageName),
             reviewIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         val processPendingIntent = PendingIntent.getBroadcast(
             context,
-            Constants.REQUEST_CODE_PROCESS + packageName.hashCode(),
+            Constants.REQUEST_CODE_PROCESS + appScopedOffset(packageName),
             processIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -171,6 +179,8 @@ class NotificationHelper(private val context: Context) {
     private fun createSummaryIntent(): Intent {
         return context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-        } ?: Intent()
+        } ?: Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
     }
 }
