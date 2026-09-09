@@ -25,6 +25,9 @@ object Constants {
 
     const val DEFAULT_PROFILE_NAME = "Default"
 
+    const val SHIZUKU_REQUEST_CODE = 1001
+    const val SHIZUKU_PACKAGE = "moe.shizuku.privileged.api"
+
     const val REQUEST_CODE_REVIEW = 100
     const val REQUEST_CODE_PROCESS = 101
     const val REQUEST_CODE_SUMMARY = 102

@@ -24,10 +24,14 @@ import com.appcontrol.data.repository.PolicyRepositoryImpl
 import com.appcontrol.data.repository.ProfileRepositoryImpl
 import com.appcontrol.data.system.PackageManagerProviderImpl
 import com.appcontrol.data.system.ProcessStopperImpl
+import com.appcontrol.data.system.ResolvingProcessStopper
+import com.appcontrol.data.system.ShizukuManager
 import com.appcontrol.feature.AppControlTheme
 import com.appcontrol.feature.navigation.AppDependencies
 import com.appcontrol.feature.navigation.AppNavGraph
 import com.appcontrol.feature.navigation.Screen
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
 class MainActivity : ComponentActivity() {
 
@@ -70,6 +74,14 @@ class MainActivity : ComponentActivity() {
     private fun buildDependencies(app: AppControlApplication): AppDependencies {
         val dbProvider = AppDatabaseProvider(applicationContext)
         val packageManagerProvider = PackageManagerProviderImpl(applicationContext)
+        val shizukuManager = ShizukuManager(applicationContext)
+        val fallbackStopper = ProcessStopperImpl(applicationContext)
+        val processStopper = ResolvingProcessStopper(
+            shizukuManager,
+            fallbackStopper
+        ) {
+            runBlocking { app.preferencesManager.shizukuEnabled.first() }
+        }
 
         return AppDependencies(
             context = applicationContext,
@@ -78,7 +90,8 @@ class MainActivity : ComponentActivity() {
             historyRepository = HistoryRepositoryImpl(dbProvider.historyDao),
             activityEventRepository = ActivityEventRepositoryImpl(dbProvider.activityEventDao),
             policyRepository = PolicyRepositoryImpl(dbProvider.appPolicyDao),
-            processStopper = ProcessStopperImpl(applicationContext),
+            processStopper = processStopper,
+            shizukuManager = shizukuManager,
             preferencesManager = app.preferencesManager,
             permissionManager = PermissionManager(applicationContext),
             notificationHelper = NotificationHelper(applicationContext)

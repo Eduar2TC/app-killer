@@ -13,6 +13,8 @@ import com.appcontrol.data.repository.AppRepositoryImpl
 import com.appcontrol.data.repository.HistoryRepositoryImpl
 import com.appcontrol.data.system.PackageManagerProviderImpl
 import com.appcontrol.data.system.ProcessStopperImpl
+import com.appcontrol.data.system.ResolvingProcessStopper
+import com.appcontrol.data.system.ShizukuManager
 import com.appcontrol.domain.model.NightSchedule
 import com.appcontrol.domain.usecase.MonitorAppActivityUseCase
 import com.appcontrol.domain.usecase.ProcessSelectedAppsUseCase
@@ -23,6 +25,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class WidgetActionReceiver : BroadcastReceiver() {
 
@@ -48,7 +51,12 @@ class WidgetActionReceiver : BroadcastReceiver() {
                 val appRepository = AppRepositoryImpl(dbProvider.applicationDao, packageManagerProvider)
                 val activityEventRepository = ActivityEventRepositoryImpl(dbProvider.activityEventDao)
                 val historyRepository = HistoryRepositoryImpl(dbProvider.historyDao)
-                val processStopper = ProcessStopperImpl(context)
+                val processStopper = ResolvingProcessStopper(
+                    ShizukuManager(context),
+                    ProcessStopperImpl(context)
+                ) {
+                    runBlocking { PreferencesManager(context).shizukuEnabled.first() }
+                }
 
                 val monitorAppActivity = MonitorAppActivityUseCase(
                     appRepository,

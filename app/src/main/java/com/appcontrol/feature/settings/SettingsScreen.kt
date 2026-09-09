@@ -1,5 +1,8 @@
 package com.appcontrol.feature.settings
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -51,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.appcontrol.core.common.Constants
 import com.appcontrol.feature.navigation.AppDependencies
 import com.appcontrol.feature.navigation.Screen
 import kotlin.math.roundToInt
@@ -67,7 +71,8 @@ fun SettingsScreen(
         factory = SettingsViewModel.Factory(
             deps.preferencesManager,
             deps.cleanupHistory,
-            deps.permissionManager
+            deps.permissionManager,
+            deps.shizukuManager
         )
     )
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -118,6 +123,95 @@ fun SettingsScreen(
                     checked = state.vibration,
                     onCheckedChange = { viewModel.setVibration(it) }
                 )
+            }
+
+            SettingsSection(title = "Shizuku") {
+                ListItem(
+                    leadingContent = {
+                        Box(
+                            modifier = Modifier
+                                .size(12.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (state.shizukuAvailable) {
+                                        grantedColor
+                                    } else {
+                                        MaterialTheme.colorScheme.error
+                                    }
+                                )
+                        )
+                    },
+                    headlineContent = { Text("Force-stop with Shizuku") },
+                    supportingContent = {
+                        Text(
+                            if (state.shizukuAvailable) {
+                                "Force-stops apps with shell privileges"
+                            } else {
+                                "Shizuku app not installed"
+                            }
+                        )
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = state.shizukuEnabled,
+                            onCheckedChange = { viewModel.setShizukuEnabled(it) }
+                        )
+                    }
+                )
+                ListItem(
+                    headlineContent = {
+                        Text(if (state.shizukuAvailable) "Shizuku available" else "Shizuku not installed")
+                    },
+                    supportingContent = {
+                        Text(
+                            if (state.shizukuVersion > 0) {
+                                "Server version ${state.shizukuVersion}"
+                            } else {
+                                "Download it from shizuku.rikka.app"
+                            }
+                        )
+                    }
+                )
+                ListItem(
+                    leadingContent = {
+                        Box(
+                            modifier = Modifier
+                                .size(12.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (state.shizukuPermissionGranted) {
+                                        grantedColor
+                                    } else {
+                                        MaterialTheme.colorScheme.error
+                                    }
+                                )
+                        )
+                    },
+                    headlineContent = { Text("Shizuku permission") },
+                    supportingContent = {
+                        Text(if (state.shizukuPermissionGranted) "Granted" else "Not granted")
+                    }
+                )
+                if (state.shizukuAvailable && !state.shizukuPermissionGranted) {
+                    Button(
+                        onClick = { viewModel.requestShizukuPermission() },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        Text("Grant permission")
+                    }
+                }
+                if (!state.shizukuAvailable) {
+                    OutlinedButton(
+                        onClick = { openShizukuApp(deps.context) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        Text("Open Shizuku")
+                    }
+                }
             }
 
             SettingsSection(title = "Monitoring") {
@@ -344,4 +438,11 @@ private fun SettingsSliderRow(
             steps = steps
         )
     }
+}
+
+private fun openShizukuApp(context: Context) {
+    val intent = context.packageManager.getLaunchIntentForPackage(Constants.SHIZUKU_PACKAGE)
+        ?: Intent(Intent.ACTION_VIEW, Uri.parse("https://shizuku.rikka.app/download/"))
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    runCatching { context.startActivity(intent) }
 }

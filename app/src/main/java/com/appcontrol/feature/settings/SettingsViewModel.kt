@@ -1,17 +1,20 @@
 package com.appcontrol.feature.settings
 
+import android.content.pm.PackageManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.appcontrol.core.common.Constants
 import com.appcontrol.core.datastore.PreferencesManager
 import com.appcontrol.core.permissions.PermissionManager
+import com.appcontrol.data.system.ShizukuManager
 import com.appcontrol.domain.usecase.CleanupHistoryUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import rikka.shizuku.Shizuku
 
 data class SettingsUiState(
     val showSystemApps: Boolean = true,
@@ -26,19 +29,31 @@ data class SettingsUiState(
     val usageStatsPermission: Boolean = false,
     val notificationPermission: Boolean = false,
     val exactAlarmPermission: Boolean = false,
+    val shizukuEnabled: Boolean = false,
+    val shizukuAvailable: Boolean = false,
+    val shizukuPermissionGranted: Boolean = false,
+    val shizukuVersion: Int = 0,
     val lastMessage: String? = null
 )
 
 class SettingsViewModel(
     private val preferencesManager: PreferencesManager,
     private val cleanupHistory: CleanupHistoryUseCase,
-    private val permissionManager: PermissionManager
+    private val permissionManager: PermissionManager,
+    private val shizukuManager: ShizukuManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsUiState())
     val state: StateFlow<SettingsUiState> = _state.asStateFlow()
 
+    private val permissionListener = Shizuku.OnRequestPermissionResultListener { _, grantResult ->
+        _state.update {
+            it.copy(shizukuPermissionGranted = grantResult == PackageManager.PERMISSION_GRANTED)
+        }
+    }
+
     init {
+        shizukuManager.addPermissionResultListener(permissionListener)
         viewModelScope.launch { preferencesManager.showSystemApps.collect { it.let { v -> _state.update { s -> s.copy(showSystemApps = v) } } } }
         viewModelScope.launch { preferencesManager.confirmActions.collect { it.let { v -> _state.update { s -> s.copy(confirmActions = v) } } } }
         viewModelScope.launch { preferencesManager.vibration.collect { it.let { v -> _state.update { s -> s.copy(vibration = v) } } } }
@@ -48,6 +63,7 @@ class SettingsViewModel(
         viewModelScope.launch { preferencesManager.historyRetentionDays.collect { it.let { v -> _state.update { s -> s.copy(historyRetentionDays = v) } } } }
         viewModelScope.launch { preferencesManager.notificationCooldownMinutes.collect { it.let { v -> _state.update { s -> s.copy(notificationCooldownMinutes = v) } } } }
         viewModelScope.launch { preferencesManager.minimumEventIntervalMinutes.collect { it.let { v -> _state.update { s -> s.copy(minimumEventIntervalMinutes = v) } } } }
+        viewModelScope.launch { preferencesManager.shizukuEnabled.collect { it.let { v -> _state.update { s -> s.copy(shizukuEnabled = v) } } } }
         viewModelScope.launch {
             permissionManager.state.collect { permission ->
                 _state.update {
@@ -60,11 +76,29 @@ class SettingsViewModel(
             }
         }
         refreshPermissions()
+        refreshShizukuStatus()
     }
 
     fun refreshPermissions() {
         permissionManager.refreshState()
     }
+
+    fun refreshShizukuStatus() {
+        _state.update {
+            it.copy(
+                shizukuAvailable = shizukuManager.isAvailable,
+                shizukuPermissionGranted = shizukuManager.isPermissionGranted,
+                shizukuVersion = shizukuManager.shizukuVersion
+            )
+        }
+    }
+
+    fun requestShizukuPermission() {
+        if (!shizukuManager.isAvailable) return
+        shizukuManager.requestPermission(Constants.SHIZUKU_REQUEST_CODE)
+    }
+
+    fun setShizukuEnabled(value: Boolean) = viewModelScope.launch { preferencesManager.setShizukuEnabled(value) }
 
     fun setShowSystemApps(value: Boolean) = viewModelScope.launch { preferencesManager.setShowSystemApps(value) }
     fun setConfirmActions(value: Boolean) = viewModelScope.launch { preferencesManager.setConfirmActions(value) }
@@ -104,10 +138,16 @@ class SettingsViewModel(
         _state.update { it.copy(lastMessage = null) }
     }
 
+    override fun onCleared() {
+        shizukuManager.removePermissionResultListener(permissionListener)
+        super.onCleared()
+    }
+
     class Factory(
         private val preferencesManager: PreferencesManager,
         private val cleanupHistory: CleanupHistoryUseCase,
-        private val permissionManager: PermissionManager
+        private val permissionManager: PermissionManager,
+        private val shizukuManager: ShizukuManager
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -115,7 +155,8 @@ class SettingsViewModel(
                 return SettingsViewModel(
                     preferencesManager,
                     cleanupHistory,
-                    permissionManager
+                    permissionManager,
+                    shizukuManager
                 ) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")

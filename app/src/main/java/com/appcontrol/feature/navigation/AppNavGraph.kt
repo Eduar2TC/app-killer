@@ -11,6 +11,7 @@ import com.appcontrol.core.datastore.PreferencesManager
 import com.appcontrol.core.notifications.NotificationHelper
 import com.appcontrol.core.permissions.PermissionManager
 import com.appcontrol.data.system.ProcessStopper
+import com.appcontrol.data.system.ShizukuManager
 import com.appcontrol.domain.repository.ActivityEventRepository
 import com.appcontrol.domain.repository.AppRepository
 import com.appcontrol.domain.repository.HistoryRepository
@@ -48,6 +49,7 @@ class AppDependencies(
     val activityEventRepository: ActivityEventRepository,
     val policyRepository: PolicyRepository,
     val processStopper: ProcessStopper,
+    val shizukuManager: ShizukuManager,
     val preferencesManager: PreferencesManager,
     val permissionManager: PermissionManager,
     val notificationHelper: NotificationHelper

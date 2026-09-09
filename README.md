@@ -1,6 +1,6 @@
 # App Control — Gestor de Aplicaciones de Android
 
-App Control monitorea la actividad de las apps instaladas, detecta reapariciones y permite **detener los procesos en segundo plano** de las apps que elijas con un solo botón. Funciona sin root, sin Shizuku y sin ADB.
+App Control monitorea la actividad de las apps instaladas, detecta reapariciones y permite **detener los procesos en segundo plano** de las apps que elijas con un solo botón. Funciona sin root, sin Shizuku y sin ADB. De forma **opcional** puedes activar el modo **force-stop con Shizuku** desde los ajustes para un cierre todavía más real.
 
 > **Grado del proyecto Gradle:** `appkiller` · **Repositorio / carpeta de clonado:** `app-killer`
 
@@ -11,7 +11,7 @@ App Control monitorea la actividad de las apps instaladas, detecta reapariciones
 - **Detección de aplicaciones instaladas** — Enumera todas las apps del sistema y del usuario
 - **Selección y monitoreo** — Elige qué apps vigilar y cuáles excluir
 - **Detección de actividad** — Usa `UsageStatsManager` para saber qué apps están en ejecución
-- **Detención de apps** — Botón **Stop Apps** (dashboard), **Stop App** (detalle) y botón **Stop del widget** que detienen de verdad los procesos en segundo plano mediante `ActivityManager.killBackgroundProcesses`
+- **Detención de apps** — Botón **Stop Apps** (dashboard), **Stop App** (detalle) y botón **Stop del widget** que detienen de verdad los procesos en segundo plano mediante `ActivityManager.killBackgroundProcesses` (o `am force-stop` real si activas el modo Shizuku opcional)
 - **Detección de reaparición** — Registra y notifica cuando una app detenida vuelve a ejecutarse
 - **Historial de eventos** — Registro de actividad, detenciones y errores
 - **Notificaciones opcionales** — Acción rápida para detener la app directamente desde la notificación
@@ -32,7 +32,17 @@ El flujo del botón **Stop Apps** es:
 4. Muestra el resumen: **Stopped X of Y apps** (o error si alguna falla).
 5. Registra cada detención en el historial como evento de acción.
 
-La detención usa la API oficial con el permiso normal `KILL_BACKGROUND_PROCESSES` (se concede automáticamente, sin diálogos). No usa root, Shizuku, ADB ni comandos de sistema. Ver [Limitaciones](#limitaciones-de-android).
+La detención usa la API oficial con el permiso normal `KILL_BACKGROUND_PROCESSES` (se concede automáticamente, sin diálogos). En su configuración por defecto no usa root, Shizuku, ADB ni comandos de sistema. Ver [Limitaciones](#limitaciones-de-android).
+
+### Modo opcional con Shizuku (force-stop)
+
+Si quieres que la detención sea todavía más fuerte, App Control puede usar **Shizuku** para ejecutar `am force-stop` (marca la app como «detenida» a nivel de sistema y la mantiene cerrada hasta que la abras tú). Es **opcional y está desactivado por defecto**:
+
+1. Instala la app **Shizuku** desde <https://shizuku.rikka.app/>.
+2. Actívala: en dispositivos **sin root** necesitas `adb sh sh /sdcard/Android/data/moe.shizuku.privileged.api/start.sh` (una vez por cada reinicio; en Android 11+ puedes usar **depuración inalámbrica**). Con **root** se recomienda [Sui](https://github.com/RikkaApps/Sui).
+3. En los ajustes de App Control, sección **Shizuku**, activa **Force-stop with Shizuku** y pulsa **Grant permission** cuando el permiso esté «Not granted».
+
+Con el modo activado, los botones **Stop Apps**, **Stop App**, el widget y la acción rápida de la notificación usan `am force-stop` mediante un *UserService* de Shizuku. Si Shizuku está desactivado, no está disponible o no tiene permiso, App Control **vuelve automáticamente** a `killBackgroundProcesses` (el mismo comportamiento que sin Shizuku, sin avisos manuales).
 
 ---
 
@@ -64,7 +74,7 @@ core/           → Room, DataStore, WorkManager, notificaciones, permisos
 - **Android 8.0 (API 26)** o superior
 - Permisos de **Usage Access** (para detectar la actividad de las apps)
 - **Kill background processes** — permiso normal, se concede automáticamente
-- Sin root, sin Shizuku, sin ADB
+- Sin root, sin Shizuku, sin ADB (Shizuku es **opcional**, ver [Modo Shizuku](#modo-opcional-con-shizuku-force-stop))
 
 ---
 
@@ -184,6 +194,7 @@ En el primer arranque la app pedirá los permisos: **Usage Access** (obligatorio
 | **Acceso a lista de apps** | Enumerar apps instaladas en el dispositivo | Sí |
 | **Notificaciones** | Alertar sobre reaparición de apps | No (pero recomendado) |
 | **Alarmas exactas** | Programación precisa del monitoreo nocturno | No |
+| **Shizuku** (permiso) | Force-stop real (`am force-stop`) | No (opcional, desde ajustes) |
 
 ---
 
@@ -208,14 +219,13 @@ La API `ActivityManager.killBackgroundProcesses` **sí detiene de verdad los pro
 
 **Lo que NO hace:**
 
-- No usa root
-- No usa Shizuku
-- No usa ADB
+- No usa root (ni siquiera con Shizuku: el modo Staff no root usa el UID de shell vía ADB)
+- No usa Shizuku por defecto — solo si lo activas en ajustes
+- No usa ADB (salvo para arrancar el servidor Shizuku una vez por reinicio si no tienes root)
 - No usa APIs ocultas o no documentadas
-- No ejecuta comandos de sistema
-- No fuerza el cierre de apps en primer plano
+- No fuerza el cierre de apps por defecto (el force-stop solo ocurre con Shizuku activado)
 
-Todo funciona dentro del modelo de seguridad estándar de Android.
+Todo funciona dentro del modelo de seguridad estándar de Android. Con Shizuku activado, el cierre se delega al *UserService* de Shizuku, que ejecuta el comando `am force-stop` con privilegios de shell o root (depende de cómo tengas configurado Shizuku), siempre bajo el control del propio usuario.
 
 ---
 

@@ -13,6 +13,7 @@ import com.appcontrol.domain.usecase.GetSelectedAppsUseCase
 import com.appcontrol.domain.usecase.ManageProfileUseCase
 import com.appcontrol.domain.usecase.MonitorAppActivityUseCase
 import com.appcontrol.domain.usecase.ProcessSelectedAppsUseCase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -73,7 +74,7 @@ class DashboardViewModel(
     }
 
     fun processApps() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _state.update { it.copy(isProcessing = true) }
             monitorAppActivity.invoke()
             val result = processSelectedApps.invoke()

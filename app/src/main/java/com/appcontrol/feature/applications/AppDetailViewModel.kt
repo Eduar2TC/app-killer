@@ -14,6 +14,7 @@ import com.appcontrol.domain.repository.AppRepository
 import com.appcontrol.domain.repository.PolicyRepository
 import com.appcontrol.domain.usecase.GetHistoryUseCase
 import com.appcontrol.domain.usecase.StopAppUseCase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -77,7 +78,7 @@ class AppDetailViewModel(
 
     fun stopApp() {
         val app = _state.value.appInfo ?: return
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _state.update { it.copy(isStopping = true) }
             val outcome = stopApp.invoke(packageName, app.label)
             _state.update {

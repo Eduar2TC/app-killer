@@ -32,6 +32,7 @@ class PreferencesManager(private val context: Context) {
         val HISTORY_RETENTION_DAYS = intPreferencesKey("history_retention_days")
         val NOTIFICATION_COOLDOWN_MINUTES = intPreferencesKey("notification_cooldown_minutes")
         val MINIMUM_EVENT_INTERVAL_MINUTES = intPreferencesKey("minimum_event_interval_minutes")
+        val SHIZUKU_ENABLED = booleanPreferencesKey("shizuku_enabled")
         val IS_ONBOARDING_COMPLETED = booleanPreferencesKey("is_onboarding_completed")
     }
 
@@ -99,6 +100,10 @@ class PreferencesManager(private val context: Context) {
         prefs[Keys.IS_ONBOARDING_COMPLETED] ?: false
     }
 
+    val shizukuEnabled: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[Keys.SHIZUKU_ENABLED] ?: false
+    }
+
     suspend fun setShowSystemApps(value: Boolean) {
         context.dataStore.edit { it[Keys.SHOW_SYSTEM_APPS] = value }
     }
@@ -161,5 +166,9 @@ class PreferencesManager(private val context: Context) {
 
     suspend fun setOnboardingCompleted(value: Boolean) {
         context.dataStore.edit { it[Keys.IS_ONBOARDING_COMPLETED] = value }
+    }
+
+    suspend fun setShizukuEnabled(value: Boolean) {
+        context.dataStore.edit { it[Keys.SHIZUKU_ENABLED] = value }
     }
 }
