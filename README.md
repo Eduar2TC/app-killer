@@ -102,7 +102,7 @@ sdk.dir=/home/tu-usuario/Android/Sdk
 ### 4. Compilar
 
 ```bash
-cd appkiller
+cd app-killer
 
 # APK de depuración (firmado por defecto)
 ./gradlew assembleDebug
@@ -195,36 +195,32 @@ Todo funciona completamente dentro del modelo de seguridad estándar de Android.
 ## Estructura del Proyecto
 
 ```
-appkiller/
+app-killer/
 ├── app/
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/com/appkiller/
-│   │   │   │   ├── App.kt
-│   │   │   │   ├── MainActivity.kt
-│   │   │   │   ├── di/              # Módulos Koin
-│   │   │   │   ├── data/
-│   │   │   │   │   ├── local/       # Room DB, DAOs, DataStore
-│   │   │   │   │   └── repository/  # Implementaciones de repositorios
-│   │   │   │   ├── domain/
-│   │   │   │   │   ├── model/       # Modelos de negocio
-│   │   │   │   │   └── usecase/     # Casos de uso
-│   │   │   │   ├── presentation/
-│   │   │   │   │   ├── screens/     # Pantallas Compose
-│   │   │   │   │   ├── components/  # Componentes reutilizables
-│   │   │   │   │   └── viewmodel/   # ViewModels
-│   │   │   │   ├── service/         # Servicio de monitoreo
-│   │   │   │   └── worker/          # Workers de WorkManager
-│   │   │   ├── res/
-│   │   │   └── AndroidManifest.xml
-│   │   └── test/
 │   ├── build.gradle.kts
-│   └── proguard-rules.pro
-├── gradle/
+│   ├── proguard-rules.pro
+│   └── src/
+│       ├── main/
+│       │   ├── AndroidManifest.xml
+│       │   ├── java/com/appcontrol/
+│       │   │   ├── AppControlApplication.kt
+│       │   │   ├── core/        # Room, DataStore, notificaciones, permisos, sistema, tiempo
+│       │   │   ├── data/        # Repositorios, providers de sistema
+│       │   │   ├── domain/      # Modelos de negocio y casos de uso
+│       │   │   ├── engine/      # Motor de monitoreo
+│       │   │   ├── feature/     # UI Compose (screens, viewmodels) y navegación
+│       │   │   ├── receiver/    # BootReceiver, NotificationReceiver
+│       │   │   ├── scheduler/   # WorkManager y AlarmManager
+│       │   │   └── worker/      # Workers de WorkManager
+│       │   └── res/
+│       ├── test/                # Tests unitarios (JVM)
+│       └── androidTest/         # Tests instrumentados y de Compose UI
+├── gradle/wrapper/
 ├── gradlew
 ├── gradlew.bat
 ├── settings.gradle.kts
 ├── build.gradle.kts
+├── gradle.properties
 ├── .gitignore
 └── README.md
 ```
