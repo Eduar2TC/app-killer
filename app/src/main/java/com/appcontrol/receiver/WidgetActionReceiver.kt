@@ -25,7 +25,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 class WidgetActionReceiver : BroadcastReceiver() {
 
@@ -55,7 +54,7 @@ class WidgetActionReceiver : BroadcastReceiver() {
                     ShizukuManager(context),
                     ProcessStopperImpl(context)
                 ) {
-                    runBlocking { PreferencesManager(context).shizukuEnabled.first() }
+                    PreferencesManager(context).shizukuEnabled.first()
                 }
 
                 val monitorAppActivity = MonitorAppActivityUseCase(

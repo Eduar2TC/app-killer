@@ -37,10 +37,10 @@ class ScheduleCalculatorTest {
 
     @Test
     fun isWithinWindow_sizeBasedWindow_boundaryAtEndExcluded() {
-        assertTrue(ScheduleCalculator.isWithinWindow(10 * 60, 10 * 60, 30))
-        assertTrue(ScheduleCalculator.isWithinWindow(10 * 60 + 29, 10 * 60, 30))
-        assertFalse(ScheduleCalculator.isWithinWindow(10 * 60 + 30, 10 * 60, 30))
-        assertFalse(ScheduleCalculator.isWithinWindow(9 * 60 + 59, 10 * 60, 30))
+        assertTrue(ScheduleCalculator.isWithinWindowFromSize(10 * 60, 10 * 60, 30))
+        assertTrue(ScheduleCalculator.isWithinWindowFromSize(10 * 60 + 29, 10 * 60, 30))
+        assertFalse(ScheduleCalculator.isWithinWindowFromSize(10 * 60 + 30, 10 * 60, 30))
+        assertFalse(ScheduleCalculator.isWithinWindowFromSize(9 * 60 + 59, 10 * 60, 30))
     }
 
     @Test

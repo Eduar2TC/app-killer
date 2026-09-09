@@ -5,6 +5,7 @@ import com.appcontrol.core.datastore.PreferencesManager
 import com.appcontrol.core.notifications.NotificationHelper
 import com.appcontrol.core.permissions.PermissionManager
 import com.appcontrol.data.system.ProcessStopper
+import com.appcontrol.data.system.ShizukuManager
 import com.appcontrol.domain.model.ActivityEvent
 import com.appcontrol.domain.model.AppInfo
 import com.appcontrol.domain.model.AppPolicy
@@ -273,6 +274,7 @@ class UiTestDependencies(context: Context) {
         activityEventRepository = activityEventRepository,
         policyRepository = policyRepository,
         processStopper = processStopper,
+        shizukuManager = ShizukuManager(context),
         preferencesManager = preferencesManager,
         permissionManager = permissionManager,
         notificationHelper = notificationHelper

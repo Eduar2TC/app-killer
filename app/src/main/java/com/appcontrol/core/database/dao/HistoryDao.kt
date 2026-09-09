@@ -38,7 +38,7 @@ interface HistoryDao {
     suspend fun getLatestEvent(): HistoryEventEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertEvent(event: HistoryEventEntity)
+    suspend fun insertEvent(event: HistoryEventEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEvents(events: List<HistoryEventEntity>)

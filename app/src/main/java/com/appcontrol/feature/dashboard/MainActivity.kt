@@ -31,7 +31,6 @@ import com.appcontrol.feature.navigation.AppDependencies
 import com.appcontrol.feature.navigation.AppNavGraph
 import com.appcontrol.feature.navigation.Screen
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 
 class MainActivity : ComponentActivity() {
 
@@ -80,7 +79,7 @@ class MainActivity : ComponentActivity() {
             shizukuManager,
             fallbackStopper
         ) {
-            runBlocking { app.preferencesManager.shizukuEnabled.first() }
+            app.preferencesManager.shizukuEnabled.first()
         }
 
         return AppDependencies(

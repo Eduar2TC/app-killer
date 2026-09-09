@@ -48,7 +48,7 @@ object ScheduleCalculator {
         }
     }
 
-    fun isWithinWindow(
+    fun isWithinWindowFromSize(
         currentMinutes: Int,
         startMinutes: Int,
         windowSizeMinutes: Int

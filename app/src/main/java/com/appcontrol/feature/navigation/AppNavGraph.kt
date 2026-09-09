@@ -12,6 +12,7 @@ import com.appcontrol.core.notifications.NotificationHelper
 import com.appcontrol.core.permissions.PermissionManager
 import com.appcontrol.data.system.ProcessStopper
 import com.appcontrol.data.system.ShizukuManager
+import com.appcontrol.domain.model.NightSchedule
 import com.appcontrol.domain.repository.ActivityEventRepository
 import com.appcontrol.domain.repository.AppRepository
 import com.appcontrol.domain.repository.HistoryRepository
@@ -40,6 +41,9 @@ import com.appcontrol.feature.permissions.PermissionsScreen
 import com.appcontrol.feature.profiles.ProfileDetailScreen
 import com.appcontrol.feature.profiles.ProfilesScreen
 import com.appcontrol.feature.settings.SettingsScreen
+import com.appcontrol.scheduler.AlarmScheduler
+import com.appcontrol.scheduler.WorkManagerScheduler
+import kotlinx.coroutines.flow.first
 
 class AppDependencies(
     val context: Context,
@@ -74,7 +78,41 @@ class AppDependencies(
     val stopApp: StopAppUseCase by lazy {
         StopAppUseCase(activityEventRepository, historyRepository, processStopper)
     }
-    val scheduleMonitoring: ScheduleMonitoringUseCase by lazy { ScheduleMonitoringUseCase { } }
+    val scheduleMonitoring: ScheduleMonitoringUseCase by lazy {
+        ScheduleMonitoringUseCase(
+            object : ScheduleMonitoringUseCase.SchedulerDelegate {
+                override suspend fun schedule() {
+                    val prefs = PreferencesManager(context)
+                    val workManagerScheduler = WorkManagerScheduler(context)
+                    val alarmScheduler = AlarmScheduler(context)
+
+                    val interval = prefs.monitoringInterval.first().toLong()
+                    workManagerScheduler.schedulePeriodicCheck(interval)
+                    workManagerScheduler.scheduleHistoryCleanup()
+
+                    val nightEnabled = prefs.nightProtectionEnabled.first()
+                    if (nightEnabled) {
+                        val nightSchedule = NightSchedule(
+                            enabled = true,
+                            startHour = prefs.nightStartHour.first(),
+                            startMinute = prefs.nightStartMinute.first(),
+                            endHour = prefs.nightEndHour.first(),
+                            endMinute = prefs.nightEndMinute.first()
+                        )
+                        alarmScheduler.scheduleNightProtection(nightSchedule)
+                        workManagerScheduler.scheduleNightProtection(nightSchedule)
+                    } else {
+                        alarmScheduler.cancelNightProtection()
+                    }
+                }
+
+                override suspend fun cancel() {
+                    WorkManagerScheduler(context).cancelAll()
+                    AlarmScheduler(context).cancelNightProtection()
+                }
+            }
+        )
+    }
     val manageProfile: ManageProfileUseCase by lazy { ManageProfileUseCase(profileRepository) }
     val getHistory: GetHistoryUseCase by lazy { GetHistoryUseCase(historyRepository) }
     val getStatistics: GetStatisticsUseCase by lazy {

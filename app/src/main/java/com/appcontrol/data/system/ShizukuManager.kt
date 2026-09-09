@@ -10,6 +10,8 @@ import com.appcontrol.shizuku.IAppControlService
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import rikka.shizuku.Shizuku
@@ -25,6 +27,8 @@ class ShizukuManager(private val context: Context) : ShizukuGateway {
 
     @Volatile
     private var currentConnection: ServiceConnection? = null
+
+    private val bindMutex = Mutex()
 
     override val isAvailable: Boolean
         get() = try {
@@ -96,36 +100,41 @@ class ShizukuManager(private val context: Context) : ShizukuGateway {
         boundService?.let { return it }
         if (!isAvailable || !isPermissionGranted) return null
 
-        val deferred = CompletableDeferred<IAppControlService?>()
-        val connection = object : ServiceConnection {
-            override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-                val impl = service?.let { IAppControlService.Stub.asInterface(it) }
-                if (!deferred.isCompleted) deferred.complete(impl)
+        return bindMutex.withLock {
+            boundService?.let { return@withLock it }
+            if (!isAvailable || !isPermissionGranted) return@withLock null
+
+            val deferred = CompletableDeferred<IAppControlService?>()
+            val connection = object : ServiceConnection {
+                override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                    val impl = service?.let { IAppControlService.Stub.asInterface(it) }
+                    if (!deferred.isCompleted) deferred.complete(impl)
+                }
+
+                override fun onServiceDisconnected(name: ComponentName?) {
+                    if (currentConnection === this) boundService = null
+                    if (!deferred.isCompleted) deferred.complete(null)
+                }
             }
 
-            override fun onServiceDisconnected(name: ComponentName?) {
-                boundService = null
+            val args = userServiceArgs()
+            var bound = false
+            try {
+                Shizuku.bindUserService(args, connection)
+                bound = true
+                currentConnection = connection
+            } catch (_: Throwable) {
                 if (!deferred.isCompleted) deferred.complete(null)
             }
-        }
 
-        val args = userServiceArgs()
-        var bound = false
-        try {
-            Shizuku.bindUserService(args, connection)
-            bound = true
-            currentConnection = connection
-        } catch (_: Throwable) {
-            if (!deferred.isCompleted) deferred.complete(null)
+            val impl = withTimeoutOrNull(BIND_TIMEOUT_MS) { deferred.await() }
+            if (impl == null && bound) {
+                runCatching { Shizuku.unbindUserService(args, connection, true) }
+                if (currentConnection === connection) currentConnection = null
+            }
+            boundService = impl
+            impl
         }
-
-        val impl = withTimeoutOrNull(BIND_TIMEOUT_MS) { deferred.await() }
-        if (impl == null && bound) {
-            runCatching { Shizuku.unbindUserService(args, connection, true) }
-            currentConnection = null
-        }
-        boundService = impl
-        return impl
     }
 
     private fun userServiceArgs(): Shizuku.UserServiceArgs =

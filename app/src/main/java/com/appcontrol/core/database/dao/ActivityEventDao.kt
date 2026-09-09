@@ -41,7 +41,7 @@ interface ActivityEventDao {
     fun countEventsByTypeSince(packageName: String, eventType: String, since: Long): Flow<Int>
 
     @Query("""
-        SELECT package_name, COUNT(*) as count 
+        SELECT package_name AS packageName, COUNT(*) as count 
         FROM activity_event 
         WHERE event_type = :eventType AND timestamp >= :since 
         GROUP BY package_name 
@@ -56,7 +56,7 @@ interface ActivityEventDao {
     fun getPackagesWithEventTypeSince(eventType: String, since: Long): Flow<List<String>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertEvent(event: ActivityEventEntity)
+    suspend fun insertEvent(event: ActivityEventEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEvents(events: List<ActivityEventEntity>)
