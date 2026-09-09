@@ -20,5 +20,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "app-killer"
+rootProject.name = "appkiller"
 include(":app")
