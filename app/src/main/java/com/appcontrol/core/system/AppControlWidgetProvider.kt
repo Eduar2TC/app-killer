@@ -9,9 +9,11 @@ import android.content.Intent
 import android.os.Build
 import android.widget.RemoteViews
 import com.appcontrol.R
+import com.appcontrol.core.datastore.PreferencesManager
 import com.appcontrol.feature.dashboard.MainActivity
-import com.appcontrol.receiver.BootReceiver
 import com.appcontrol.receiver.WidgetActionReceiver
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
 class AppControlWidgetProvider : AppWidgetProvider() {
 
@@ -40,6 +42,22 @@ class AppControlWidgetProvider : AppWidgetProvider() {
     ) {
         val views = RemoteViews(context.packageName, R.layout.app_widget_layout)
 
+        val protectionEnabled = runBlocking {
+            try {
+                PreferencesManager(context).nightProtectionEnabled.first()
+            } catch (e: Exception) {
+                false
+            }
+        }
+        views.setTextViewText(
+            R.id.widgetStatus,
+            if (protectionEnabled) {
+                context.getString(R.string.widget_protection_active)
+            } else {
+                context.getString(R.string.widget_protection_inactive)
+            }
+        )
+
         val openIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
@@ -51,7 +69,7 @@ class AppControlWidgetProvider : AppWidgetProvider() {
         )
         views.setOnClickPendingIntent(R.id.widgetTitle, openPending)
 
-        val statusIntent = Intent(context, BootReceiver::class.java).apply {
+        val statusIntent = Intent(context, WidgetActionReceiver::class.java).apply {
             action = ACTION_APP_CONTROL_OPEN
         }
         val statusPending = PendingIntent.getBroadcast(

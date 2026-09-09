@@ -55,6 +55,7 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="com.appcontrol.action.APP_CONTROL_TOGGLE" />
+                <action android:name="com.appcontrol.action.APP_CONTROL_OPEN" />
             </intent-filter>
         </receiver>
 

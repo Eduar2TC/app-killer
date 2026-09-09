@@ -17,6 +17,7 @@ App Control monitorea la actividad de las apps instaladas, detecta reapariciones
 - **Notificaciones opcionales** — Acción rápida para detener la app directamente desde la notificación
 - **Perfiles configurables** — Reglas por contexto (Noche, Trabajo, Juegos, etc.)
 - **Programación con WorkManager y AlarmManager** — Monitoreo periódico y nocturno automático
+- **Widget con acciones rápidas** — Botón **Stop** (detiene las apps) e indicador de estado que alterna la protección nocturna (muestra «activada/desactivada» en tiempo real)
 - **Interfaz Material 3** — Diseño moderno con soporte dark y light mode
 
 ---
