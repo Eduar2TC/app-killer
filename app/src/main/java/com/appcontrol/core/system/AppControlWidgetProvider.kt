@@ -11,6 +11,7 @@ import android.widget.RemoteViews
 import com.appcontrol.R
 import com.appcontrol.feature.dashboard.MainActivity
 import com.appcontrol.receiver.BootReceiver
+import com.appcontrol.receiver.WidgetActionReceiver
 
 class AppControlWidgetProvider : AppWidgetProvider() {
 
@@ -61,7 +62,7 @@ class AppControlWidgetProvider : AppWidgetProvider() {
         )
         views.setOnClickPendingIntent(R.id.widgetStatus, statusPending)
 
-        val processIntent = Intent(context, BootReceiver::class.java).apply {
+        val processIntent = Intent(context, WidgetActionReceiver::class.java).apply {
             action = ACTION_APP_CONTROL_TOGGLE
         }
         val processPending = PendingIntent.getBroadcast(

@@ -114,6 +114,46 @@ class NotificationHelper(private val context: Context) {
         notificationManager.cancelAll()
     }
 
+    fun showWidgetStopResult(stopped: Int, total: Int, failed: Int) {
+        val text = when {
+            total == 0 -> "No apps selected to stop."
+            failed > 0 -> "Stopped $stopped of $total apps. $failed failed."
+            stopped > 0 -> "Stopped $stopped of $total apps."
+            else -> "Nothing to stop."
+        }
+        showGeneralNotification("Stop Apps", text)
+    }
+
+    fun showWidgetStopError(message: String) {
+        showGeneralNotification("Stop Apps failed", "$message (tap for details)")
+    }
+
+    fun showGeneralNotification(title: String, text: String) {
+        val contentIntent = createSummaryIntent()
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            Constants.REQUEST_CODE_SUMMARY,
+            contentIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(context, Constants.NOTIFICATION_CHANNEL_GENERAL)
+            .setSmallIcon(android.R.drawable.stat_notify_error)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .build()
+
+        try {
+            notificationManager.notify(Constants.NOTIFICATION_ID_WIDGET_STOP, notification)
+        } catch (e: SecurityException) {
+            // notifications permission not granted; result stays silent
+        }
+    }
+
     private fun createReviewIntent(packageName: String): Intent {
         return Intent(context, com.appcontrol.receiver.NotificationReceiver::class.java).apply {
             action = com.appcontrol.receiver.NotificationReceiver.ACTION_REVIEW

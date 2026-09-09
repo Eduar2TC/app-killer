@@ -11,7 +11,7 @@ App Control monitorea la actividad de las apps instaladas, detecta reapariciones
 - **Detección de aplicaciones instaladas** — Enumera todas las apps del sistema y del usuario
 - **Selección y monitoreo** — Elige qué apps vigilar y cuáles excluir
 - **Detección de actividad** — Usa `UsageStatsManager` para saber qué apps están en ejecución
-- **Detención de apps** — Botón **Stop Apps** (dashboard) y **Stop App** (detalle) que detiene de verdad los procesos en segundo plano mediante `ActivityManager.killBackgroundProcesses`
+- **Detención de apps** — Botón **Stop Apps** (dashboard), **Stop App** (detalle) y botón **Stop del widget** que detienen de verdad los procesos en segundo plano mediante `ActivityManager.killBackgroundProcesses`
 - **Detección de reaparición** — Registra y notifica cuando una app detenida vuelve a ejecutarse
 - **Historial de eventos** — Registro de actividad, detenciones y errores
 - **Notificaciones opcionales** — Acción rápida para detener la app directamente desde la notificación
@@ -199,7 +199,7 @@ La API `ActivityManager.killBackgroundProcesses` **sí detiene de verdad los pro
 
 **Lo que hace App Control:**
 
-- **Detiene** los procesos en segundo plano de las apps seleccionadas con un solo botón (dashboard y detalle)
+- **Detiene** los procesos en segundo plano de las apps seleccionadas con un solo botón (dashboard, detalle y widget)
 - **Detiene la app** directamente desde la notificación de reaparición (acción «Stop»)
 - **Registra** en el historial cada detención y cada error
 - **Detecta y alerta** cada vez que una app reaparece tras haber sido detenida

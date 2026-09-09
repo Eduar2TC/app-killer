@@ -50,6 +50,14 @@
             android:name=".receiver.NotificationReceiver"
             android:exported="false" />
 
+        <receiver
+            android:name=".receiver.WidgetActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.appcontrol.action.APP_CONTROL_TOGGLE" />
+            </intent-filter>
+        </receiver>
+
         <service
             android:name=".core.system.AppControlTileService"
             android:exported="true"
