@@ -27,8 +27,8 @@ App Control monitorea la actividad de las apps instaladas, detecta reapariciones
 El flujo del botón **Stop Apps** es:
 
 1. Lee las apps seleccionadas (sin contar las excluidas).
-2. Comprueba cuáles se están ejecutando en segundo plano (`UsageStatsManager`).
-3. Llama a `ActivityManager.killBackgroundProcesses` para cada una de ellas.
+2. Comprueba cuáles están en ejecución según el último estado detectado (`UsageStatsManager` alimenta el modelo de estado).
+3. Llama a `ActivityManager.killBackgroundProcesses` para cada una de ellas (o `am force-stop` en el modo Shizuku opcional).
 4. Muestra el resumen: **Stopped X of Y apps** (o error si alguna falla).
 5. Registra cada detención en el historial como evento de acción.
 
@@ -217,9 +217,11 @@ La API `ActivityManager.killBackgroundProcesses` **sí detiene de verdad los pro
 - **Detecta y alerta** cada vez que una app reaparece tras haber sido detenida
 - **Abre la configuración del sistema** de una app para casos que requieran más control (p. ej. apps en primer plano)
 
+> **Nota sobre el resultado del botón.** La API oficial `killBackgroundProcesses` no devuelve información sobre si la app tenía procesos en segundo plano reales, y Android filtra la lista de procesos en ejecución desde API 22. Por eso, una llamada correcta se notifica como **Stopped** (procesos de fondo solicitados a matar) en lugar de adivinar un «no activo» que podría dejar apps de fondo sin matar. El conteo de apps **inactive** de la pantalla se basa en el último estado detectado, no en una comprobación en directo.
+
 **Lo que NO hace:**
 
-- No usa root (ni siquiera con Shizuku: el modo Staff no root usa el UID de shell vía ADB)
+- No usa root (ni siquiera con Shizuku: sin root, Shizuku usa el UID de shell vía ADB)
 - No usa Shizuku por defecto — solo si lo activas en ajustes
 - No usa ADB (salvo para arrancar el servidor Shizuku una vez por reinicio si no tienes root)
 - No usa APIs ocultas o no documentadas
