@@ -10,6 +10,7 @@ import androidx.navigation.navArgument
 import com.appcontrol.core.datastore.PreferencesManager
 import com.appcontrol.core.notifications.NotificationHelper
 import com.appcontrol.core.permissions.PermissionManager
+import com.appcontrol.data.system.ProcessStopper
 import com.appcontrol.domain.repository.ActivityEventRepository
 import com.appcontrol.domain.repository.AppRepository
 import com.appcontrol.domain.repository.HistoryRepository
@@ -25,6 +26,7 @@ import com.appcontrol.domain.usecase.ManageProfileUseCase
 import com.appcontrol.domain.usecase.MonitorAppActivityUseCase
 import com.appcontrol.domain.usecase.ProcessSelectedAppsUseCase
 import com.appcontrol.domain.usecase.ScheduleMonitoringUseCase
+import com.appcontrol.domain.usecase.StopAppUseCase
 import com.appcontrol.domain.usecase.ToggleAppExclusionUseCase
 import com.appcontrol.domain.usecase.ToggleAppSelectionUseCase
 import com.appcontrol.feature.applications.AppDetailScreen
@@ -45,6 +47,7 @@ class AppDependencies(
     val historyRepository: HistoryRepository,
     val activityEventRepository: ActivityEventRepository,
     val policyRepository: PolicyRepository,
+    val processStopper: ProcessStopper,
     val preferencesManager: PreferencesManager,
     val permissionManager: PermissionManager,
     val notificationHelper: NotificationHelper
@@ -58,7 +61,16 @@ class AppDependencies(
         MonitorAppActivityUseCase(appRepository, activityEventRepository, historyRepository)
     }
     val processSelectedApps: ProcessSelectedAppsUseCase by lazy {
-        ProcessSelectedAppsUseCase(appRepository, historyRepository, activityEventRepository, monitorAppActivity)
+        ProcessSelectedAppsUseCase(
+            appRepository,
+            historyRepository,
+            activityEventRepository,
+            monitorAppActivity,
+            processStopper
+        )
+    }
+    val stopApp: StopAppUseCase by lazy {
+        StopAppUseCase(activityEventRepository, historyRepository, processStopper)
     }
     val scheduleMonitoring: ScheduleMonitoringUseCase by lazy { ScheduleMonitoringUseCase { } }
     val manageProfile: ManageProfileUseCase by lazy { ManageProfileUseCase(profileRepository) }

@@ -3,9 +3,11 @@ package com.appcontrol.receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import android.util.Log
 import com.appcontrol.core.common.Constants
-import com.appcontrol.feature.dashboard.MainActivity
+import com.appcontrol.data.system.ProcessStopperImpl
 
 class NotificationReceiver : BroadcastReceiver() {
 
@@ -21,26 +23,28 @@ class NotificationReceiver : BroadcastReceiver() {
         val packageName = intent.getStringExtra(Constants.EXTRA_PACKAGE_NAME)
 
         when (action) {
-            ACTION_REVIEW, ACTION_PROCESS -> {
-                Log.i(TAG, "Notification action '$action' for ${packageName ?: "unknown"}")
-                routeToMainActivity(context, action, packageName)
+            ACTION_PROCESS -> {
+                if (packageName != null) {
+                    Log.i(TAG, "Stopping package $packageName from notification")
+                    ProcessStopperImpl(context).stopPackage(packageName)
+                }
+            }
+            ACTION_REVIEW -> {
+                packageName?.let { openAppInfo(context, it) }
             }
             else -> Log.w(TAG, "Unhandled notification action: $action")
         }
     }
 
-    private fun routeToMainActivity(context: Context, action: String, packageName: String?) {
+    private fun openAppInfo(context: Context, packageName: String) {
         try {
-            val intent = Intent(context, MainActivity::class.java).apply {
-                this.action = action
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                packageName?.let {
-                    putExtra(Constants.EXTRA_PACKAGE_NAME, it)
-                }
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.fromParts("package", packageName, null)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to route notification action to MainActivity", e)
+            Log.e(TAG, "Failed to open app info for $packageName", e)
         }
     }
 }

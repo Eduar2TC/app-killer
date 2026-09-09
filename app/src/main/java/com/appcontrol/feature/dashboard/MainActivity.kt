@@ -23,6 +23,7 @@ import com.appcontrol.data.repository.HistoryRepositoryImpl
 import com.appcontrol.data.repository.PolicyRepositoryImpl
 import com.appcontrol.data.repository.ProfileRepositoryImpl
 import com.appcontrol.data.system.PackageManagerProviderImpl
+import com.appcontrol.data.system.ProcessStopperImpl
 import com.appcontrol.feature.AppControlTheme
 import com.appcontrol.feature.navigation.AppDependencies
 import com.appcontrol.feature.navigation.AppNavGraph
@@ -77,6 +78,7 @@ class MainActivity : ComponentActivity() {
             historyRepository = HistoryRepositoryImpl(dbProvider.historyDao),
             activityEventRepository = ActivityEventRepositoryImpl(dbProvider.activityEventDao),
             policyRepository = PolicyRepositoryImpl(dbProvider.appPolicyDao),
+            processStopper = ProcessStopperImpl(applicationContext),
             preferencesManager = app.preferencesManager,
             permissionManager = PermissionManager(applicationContext),
             notificationHelper = NotificationHelper(applicationContext)

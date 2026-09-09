@@ -1,20 +1,37 @@
-# App Control — Gestor Inteligente de Aplicaciones Android
+# App Control — Gestor de Aplicaciones de Android
 
-Gestor de aplicaciones Android que monitorea la actividad de las apps instaladas, detecta reapariciones y ofrece perfiles configurables. Funciona completamente sin root, sin Shizuku y sin ADB.
+App Control monitorea la actividad de las apps instaladas, detecta reapariciones y permite **detener los procesos en segundo plano** de las apps que elijas con un solo botón. Funciona sin root, sin Shizuku y sin ADB.
+
+> **Grado del proyecto Gradle:** `appkiller` · **Repositorio / carpeta de clonado:** `app-killer`
 
 ---
 
-## Características Principales
+## Características
 
 - **Detección de aplicaciones instaladas** — Enumera todas las apps del sistema y del usuario
-- **Selección y monitoreo** — Elige qué apps quieres vigilar
-- **Detección de actividad** — Usa `UsageStatsManager` para detectar qué apps se están ejecutando
-- **Detección de reaparición** — Alerta cuando una app que esperabas cerrada vuelve a ejecutarse
-- **Perfiles configurables** — Crea reglas por contexto (Noche, Trabajo, Juegos, etc.)
-- **Historial de eventos** — Registro completo de actividad detectada
-- **Notificaciones opcionales** — Alertas sobre cambios en el estado de apps
+- **Selección y monitoreo** — Elige qué apps vigilar y cuáles excluir
+- **Detección de actividad** — Usa `UsageStatsManager` para saber qué apps están en ejecución
+- **Detención de apps** — Botón **Stop Apps** (dashboard) y **Stop App** (detalle) que detiene de verdad los procesos en segundo plano mediante `ActivityManager.killBackgroundProcesses`
+- **Detección de reaparición** — Registra y notifica cuando una app detenida vuelve a ejecutarse
+- **Historial de eventos** — Registro de actividad, detenciones y errores
+- **Notificaciones opcionales** — Acción rápida para detener la app directamente desde la notificación
+- **Perfiles configurables** — Reglas por contexto (Noche, Trabajo, Juegos, etc.)
 - **Programación con WorkManager y AlarmManager** — Monitoreo periódico y nocturno automático
 - **Interfaz Material 3** — Diseño moderno con soporte dark y light mode
+
+---
+
+## Cómo detiene las apps
+
+El flujo del botón **Stop Apps** es:
+
+1. Lee las apps seleccionadas (sin contar las excluidas).
+2. Comprueba cuáles se están ejecutando en segundo plano (`UsageStatsManager`).
+3. Llama a `ActivityManager.killBackgroundProcesses` para cada una de ellas.
+4. Muestra el resumen: **Stopped X of Y apps** (o error si alguna falla).
+5. Registra cada detención en el historial como evento de acción.
+
+La detención usa la API oficial con el permiso normal `KILL_BACKGROUND_PROCESSES` (se concede automáticamente, sin diálogos). No usa root, Shizuku, ADB ni comandos de sistema. Ver [Limitaciones](#limitaciones-de-android).
 
 ---
 
@@ -35,8 +52,8 @@ Gestor de aplicaciones Android que monitorea la actividad de las apps instaladas
 ```
 feature/        → UI Compose, ViewModels, navegación
 domain/         → Casos de uso y modelos de negocio
-data/           → Repositorios, providers de sistema
-core/           → Room, DataStore, WorkManager, notificaciones
+data/           → Repositorios, providers de sistema (ProcessStopper, UsageStats…)
+core/           → Room, DataStore, WorkManager, notificaciones, permisos
 ```
 
 ---
@@ -44,14 +61,15 @@ core/           → Room, DataStore, WorkManager, notificaciones
 ## Requisitos
 
 - **Android 8.0 (API 26)** o superior
-- Permisos de **Usage Access** (para detectar actividad de apps)
+- Permisos de **Usage Access** (para detectar la actividad de las apps)
+- **Kill background processes** — permiso normal, se concede automáticamente
 - Sin root, sin Shizuku, sin ADB
 
 ---
 
 ## Compilación desde un equipo nuevo
 
-Guía para compilar el APK desde una máquina que no tiene nada de Android instalado. El proyecto ya incluye el Gradle Wrapper (`gradlew`, `gradlew.bat` y `gradle/wrapper/gradle-wrapper.jar`), por lo que **no necesitas instalar Gradle**, solo el JDK y el Android SDK.
+Guía para compilar el APK desde una máquina sin nada de Android instalado. El proyecto incluye el Gradle Wrapper (`gradlew`, `gradlew.bat` y `gradle/wrapper/gradle-wrapper.jar`), así que **no necesitas instalar Gradle**, solo el JDK y el Android SDK.
 
 ### 1. Requisitos previos
 
@@ -67,15 +85,15 @@ Verifica el JDK antes de continuar:
 java -version   # debe reportar 17.x (o 21.x)
 ```
 
-Si no los tienes:
+Si no lo tienes:
 - **Linux/WSL**: `sudo apt install openjdk-17-jdk` (o `sdkman` / la distro que uses)
 - **macOS**: `brew install openjdk@17`
 - **Windows**: instalar OpenJDK 17 y definir `JAVA_HOME`
 
 ### 2. Instalar el Android SDK
 
-Descarga Commandline Tools desde <https://developer.android.com/studio#command-line-tools-only>
-o, si tienes Android Studio, se instala desde el SDK Manager. En Linux/macOS:
+Descarga las Commandline Tools desde <https://developer.android.com/studio#command-line-tools-only>
+o, si usas Android Studio, se instalan desde el SDK Manager. En Linux/macOS:
 
 ```bash
 # Descomprimir en el directorio del SDK
@@ -91,13 +109,13 @@ mv "$HOME/Android/Sdk/cmdline-tools/cmdline-tools" "$HOME/Android/Sdk/cmdline-to
 
 ### 3. Indicar al proyecto dónde está el SDK
 
-Crea `local.properties` en la raíz del proyecto (después de `git clone` no existe):
+Crea `local.properties` en la raíz del proyecto (tras `git clone` no existe):
 
 ```properties
 sdk.dir=/home/tu-usuario/Android/Sdk
 ```
 
-> También sirve la variable de entorno `ANDROID_HOME` apuntando al mismo directorio. Si abres el proyecto en Android Studio, se genera `local.properties` automáticamente.
+> También sirve la variable de entorno `ANDROID_HOME`. Android Studio genera `local.properties` automáticamente.
 
 ### 4. Compilar
 
@@ -121,12 +139,11 @@ app/build/outputs/apk/release/app-release-unsigned.apk
 ### 5. Ejecutar en un dispositivo
 
 ```bash
-# Con ADB ya instalado y debugging USB habilitado
+# Con ADB instalado y debugging USB habilitado
 adb install app/build/outputs/apk/debug/app-debug.apk
 ```
 
-En el primer arranque la app pedirá los permisos:
-**Usage Access** (obligatorio), **Notificaciones** y **Alarmas exactas**.
+En el primer arranque la app pedirá los permisos: **Usage Access** (obligatorio), **Notificaciones** y **Alarmas exactas**. El permiso **Kill background processes** se concede solo automáticamente.
 
 ### 6. Ejecutar las pruebas
 
@@ -141,9 +158,8 @@ En el primer arranque la app pedirá los permisos:
 ### 7. Opción A — Android Studio (alternativa gráfica)
 
 1. `File → Open` y selecciona la carpeta raíz del proyecto.
-2. `File → Settings → Build, Execution, Deployment → Build Tools → Gradle`
-   y elige **Gradle JDK 17**.
-3. Espera a la sincronización (`Sync Project with Gradle Files`).
+2. `File → Settings → Build, Execution, Deployment → Build Tools → Gradle` y elige **Gradle JDK 17**.
+3. `Sync Project with Gradle Files`.
 4. `Run ▶` (dispositivo/emulador) o `Build → Build APK(s)`.
 
 ### Solución de problemas habituales
@@ -153,7 +169,7 @@ En el primer arranque la app pedirá los permisos:
 | `SDK location not found` | Falta `sdk.dir` o `ANDROID_HOME` | Crear `local.properties` (paso 3) |
 | `Unsupported class file major version …` | JDK incorrecto | Usar JDK 17 (o 21), revisar `Gradle JDK` |
 | `License for package … not accepted` | Licencias sin aceptar | `sdkmanager --licenses` |
-| Descarga lenta de Gradle la primera vez | El wrapper descarga el distribución (~140 MB) | Solo ocurre la primera compilación |
+| Descarga lenta de Gradle la primera vez | El wrapper descarga la distribución (~140 MB) | Solo ocurre la primera compilación |
 | `aapt2`/`AGP` falla en CI | Variables de entorno sin exportar | Exportar `JAVA_HOME` y `ANDROID_HOME` en el shell |
 
 ---
@@ -163,22 +179,31 @@ En el primer arranque la app pedirá los permisos:
 | Permiso | Uso | Obligatorio |
 |---------|-----|:-----------:|
 | **Usage Access** | Detectar qué apps se ejecutan y cuándo | Sí |
+| **Kill background processes** | Detener los procesos en segundo plano de las apps | Sí (permiso normal, automático) |
+| **Acceso a lista de apps** | Enumerar apps instaladas en el dispositivo | Sí |
 | **Notificaciones** | Alertar sobre reaparición de apps | No (pero recomendado) |
 | **Alarmas exactas** | Programación precisa del monitoreo nocturno | No |
-| **Acceso a lista de apps** | Enumerar apps instaladas en el dispositivo | Sí |
 
 ---
 
 ## Limitaciones de Android
 
-Android no permite que una app de terceros ejecute `force-stop` sobre otra aplicación. Esta es una restricción de seguridad del sistema operativo que no se puede evadir sin permisos root o herramientas externas.
+La API `ActivityManager.killBackgroundProcesses` **sí detiene de verdad los procesos en segundo plano**, pero Android impone límites que impiden un cierre total:
+
+- **No detiene apps en primer plano** (con una actividad visible): el sistema bloquea la operación.
+- **No es un `force-stop`**: la app no queda marcada como "detenida" a nivel de sistema, así que puede
+  volver a ejecutarse (por sí sola o porque la abras). Por eso App Control también monitorea y alerta
+  sobre reapariciones.
+- El resultado del botón **Stop Apps** / **Stop App** refleja exactamente lo ocurrido: apps detenidas,
+  apps inactivas y errores.
 
 **Lo que hace App Control:**
 
-- **Informa** al usuario cuando una app se está ejecutando sin autorización
-- **Abre la configuración del sistema** para que el usuario pueda forzar el cierre manualmente
-- **Detecta y registra** cada vez que una app reaparece tras haber sido cerrada
-- **Sugiere acciones** dentro del marco que Android permite
+- **Detiene** los procesos en segundo plano de las apps seleccionadas con un solo botón (dashboard y detalle)
+- **Detiene la app** directamente desde la notificación de reaparición (acción «Stop»)
+- **Registra** en el historial cada detención y cada error
+- **Detecta y alerta** cada vez que una app reaparece tras haber sido detenida
+- **Abre la configuración del sistema** de una app para casos que requieran más control (p. ej. apps en primer plano)
 
 **Lo que NO hace:**
 
@@ -187,8 +212,9 @@ Android no permite que una app de terceros ejecute `force-stop` sobre otra aplic
 - No usa ADB
 - No usa APIs ocultas o no documentadas
 - No ejecuta comandos de sistema
+- No fuerza el cierre de apps en primer plano
 
-Todo funciona completamente dentro del modelo de seguridad estándar de Android.
+Todo funciona dentro del modelo de seguridad estándar de Android.
 
 ---
 
@@ -205,7 +231,7 @@ app-killer/
 │       │   ├── java/com/appcontrol/
 │       │   │   ├── AppControlApplication.kt
 │       │   │   ├── core/        # Room, DataStore, notificaciones, permisos, sistema, tiempo
-│       │   │   ├── data/        # Repositorios, providers de sistema
+│       │   │   ├── data/        # Repositorios, providers de sistema (ProcessStopper, UsageStats…)
 │       │   │   ├── domain/      # Modelos de negocio y casos de uso
 │       │   │   ├── engine/      # Motor de monitoreo
 │       │   │   ├── feature/     # UI Compose (screens, viewmodels) y navegación
@@ -218,7 +244,7 @@ app-killer/
 ├── gradle/wrapper/
 ├── gradlew
 ├── gradlew.bat
-├── settings.gradle.kts
+├── settings.gradle.kts          # rootProject.name = "appkiller"
 ├── build.gradle.kts
 ├── gradle.properties
 ├── .gitignore
@@ -235,7 +261,7 @@ Cada perfil define un conjunto de reglas:
 
 - **Horario** — Rango de horas en que aplica
 - **Apps incluidas** — Qué aplicaciones monitorea
-- **Acción** — Notificar, mostrar diálogo, o silenciar
+- **Acción** — Notificar, mostrar diálogo o silenciar
 
 ### Monitoreo
 
@@ -246,11 +272,11 @@ Cada perfil define un conjunto de reglas:
 
 - Activar o desactivar globalmente
 - Notificación persistente mientras el monitoreo está activo
-- Alertas por evento (aparición de app no autorizada)
+- Alertas por evento (aparición de app no autorizada), con acción rápida **Stop**
 
 ### Historial
 
-- Registro cronológico de todos los eventos detectados
+- Registro cronológico de todos los eventos detectados (actividad y detenciones)
 - Opción de limpiar historial manualmente
 
 ---
@@ -261,7 +287,7 @@ Cada perfil define un conjunto de reglas:
 - **Sin servidores** — No se envía ninguna información a internet
 - **Sin analytics** — No se recopilan métricas de uso
 - **Sin tracking** — No se usan SDKs de terceros para rastreo
-- **Control total** — El usuario puede eliminar todos los datos en cualquier momento desde la app
+- **Control total** — El usuario puede eliminar todos sus datos en cualquier momento desde la app
 
 ---
 

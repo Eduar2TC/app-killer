@@ -233,7 +233,7 @@ private fun ControlCard(
                 Icon(Icons.Default.PlayArrow, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = if (state.isProcessing) "Processing..." else "Process Apps",
+                    text = if (state.isProcessing) "Stopping..." else "Stop Apps",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )

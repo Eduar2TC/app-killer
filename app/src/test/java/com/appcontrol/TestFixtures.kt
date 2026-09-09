@@ -2,12 +2,14 @@ package com.appcontrol
 
 import com.appcontrol.core.database.dao.HistoryDao
 import com.appcontrol.core.database.entity.HistoryEventEntity
+import com.appcontrol.data.system.ProcessStopper
 import com.appcontrol.domain.model.ActivityEvent
 import com.appcontrol.domain.model.AppInfo
 import com.appcontrol.domain.model.EventType
 import com.appcontrol.domain.model.HistoryEvent
 import com.appcontrol.domain.model.HistoryEventType
 import com.appcontrol.domain.model.Profile
+import com.appcontrol.domain.model.StopResult
 import com.appcontrol.domain.repository.ActivityEventRepository
 import com.appcontrol.domain.repository.AppRepository
 import com.appcontrol.domain.repository.HistoryRepository
@@ -15,6 +17,17 @@ import com.appcontrol.domain.repository.ProfileRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+
+class FakeProcessStopper : ProcessStopper {
+    var result: StopResult = StopResult.STOPPED
+    var resultByPackage: Map<String, StopResult> = emptyMap()
+    val stoppedPackages = mutableListOf<String>()
+
+    override fun stopPackage(packageName: String): StopResult {
+        stoppedPackages += packageName
+        return resultByPackage[packageName] ?: result
+    }
+}
 
 class FakeHistoryDao : HistoryDao {
 

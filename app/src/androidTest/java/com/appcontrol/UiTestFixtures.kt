@@ -4,6 +4,7 @@ import android.content.Context
 import com.appcontrol.core.datastore.PreferencesManager
 import com.appcontrol.core.notifications.NotificationHelper
 import com.appcontrol.core.permissions.PermissionManager
+import com.appcontrol.data.system.ProcessStopper
 import com.appcontrol.domain.model.ActivityEvent
 import com.appcontrol.domain.model.AppInfo
 import com.appcontrol.domain.model.AppPolicy
@@ -11,6 +12,7 @@ import com.appcontrol.domain.model.EventType
 import com.appcontrol.domain.model.HistoryEvent
 import com.appcontrol.domain.model.HistoryEventType
 import com.appcontrol.domain.model.Profile
+import com.appcontrol.domain.model.StopResult
 import com.appcontrol.domain.repository.ActivityEventRepository
 import com.appcontrol.domain.repository.AppRepository
 import com.appcontrol.domain.repository.HistoryRepository
@@ -240,6 +242,17 @@ class UiFakePolicyRepository : PolicyRepository {
         flowOf(policies.values.toList())
 }
 
+class UiFakeProcessStopper : ProcessStopper {
+
+    var result: StopResult = StopResult.STOPPED
+    val stoppedPackages = mutableListOf<String>()
+
+    override fun stopPackage(packageName: String): StopResult {
+        stoppedPackages += packageName
+        return result
+    }
+}
+
 class UiTestDependencies(context: Context) {
 
     val appRepository = UiFakeAppRepository()
@@ -247,6 +260,7 @@ class UiTestDependencies(context: Context) {
     val historyRepository = UiFakeHistoryRepository()
     val profileRepository = UiFakeProfileRepository()
     val policyRepository = UiFakePolicyRepository()
+    val processStopper = UiFakeProcessStopper()
     val preferencesManager = PreferencesManager(context)
     val permissionManager = PermissionManager(context)
     val notificationHelper = NotificationHelper(context)
@@ -258,6 +272,7 @@ class UiTestDependencies(context: Context) {
         historyRepository = historyRepository,
         activityEventRepository = activityEventRepository,
         policyRepository = policyRepository,
+        processStopper = processStopper,
         preferencesManager = preferencesManager,
         permissionManager = permissionManager,
         notificationHelper = notificationHelper

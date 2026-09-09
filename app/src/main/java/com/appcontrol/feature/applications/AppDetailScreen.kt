@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -71,6 +72,7 @@ fun AppDetailScreen(
             deps.appRepository,
             deps.policyRepository,
             deps.getHistory,
+            deps.stopApp,
             deps.context
         )
     )
@@ -110,11 +112,14 @@ fun AppDetailScreen(
                         ActionCard(
                             policyEnabled = state.policy?.monitorEnabled ?: true,
                             isExcluded = app.isExcluded,
+                            isStopping = state.isStopping,
+                            lastMessage = state.lastMessage,
                             onToggleMonitoring = { viewModel.toggleMonitoring() },
                             onAddToProfile = { navController.navigate(Screen.Profiles.route) },
                             onOpenApp = { viewModel.openApp() },
                             onOpenAppInfo = { viewModel.openAppInfo() },
-                            onToggleExclusion = { viewModel.exclude() }
+                            onToggleExclusion = { viewModel.exclude() },
+                            onStopApp = { viewModel.stopApp() }
                         )
                     }
                 }
@@ -210,11 +215,14 @@ private fun AppHeaderCard(app: com.appcontrol.domain.model.AppInfo) {
 private fun ActionCard(
     policyEnabled: Boolean,
     isExcluded: Boolean,
+    isStopping: Boolean,
+    lastMessage: String?,
     onToggleMonitoring: () -> Unit,
     onAddToProfile: () -> Unit,
     onOpenApp: () -> Unit,
     onOpenAppInfo: () -> Unit,
-    onToggleExclusion: () -> Unit
+    onToggleExclusion: () -> Unit,
+    onStopApp: () -> Unit
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
@@ -223,6 +231,23 @@ private fun ActionCard(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            Button(
+                onClick = onStopApp,
+                enabled = !isStopping,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.Warning, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(if (isStopping) "Stopping..." else "Stop App")
+            }
+            if (lastMessage != null) {
+                Text(
+                    text = lastMessage,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             Button(
                 onClick = onToggleMonitoring,
                 modifier = Modifier.fillMaxWidth()

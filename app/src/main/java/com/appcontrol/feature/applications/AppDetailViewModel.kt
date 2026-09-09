@@ -13,16 +13,20 @@ import com.appcontrol.domain.model.HistoryEvent
 import com.appcontrol.domain.repository.AppRepository
 import com.appcontrol.domain.repository.PolicyRepository
 import com.appcontrol.domain.usecase.GetHistoryUseCase
+import com.appcontrol.domain.usecase.StopAppUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class AppDetailUiState(
     val appInfo: AppInfo? = null,
     val policy: AppPolicy? = null,
     val recentEvents: List<HistoryEvent> = emptyList(),
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val isStopping: Boolean = false,
+    val lastMessage: String? = null
 )
 
 class AppDetailViewModel(
@@ -30,6 +34,7 @@ class AppDetailViewModel(
     private val appRepository: AppRepository,
     private val policyRepository: PolicyRepository,
     private val getHistory: GetHistoryUseCase,
+    private val stopApp: StopAppUseCase,
     private val context: Context
 ) : ViewModel() {
 
@@ -70,6 +75,21 @@ class AppDetailViewModel(
         }
     }
 
+    fun stopApp() {
+        val app = _state.value.appInfo ?: return
+        viewModelScope.launch {
+            _state.update { it.copy(isStopping = true) }
+            val outcome = stopApp.invoke(packageName, app.label)
+            _state.update {
+                it.copy(
+                    isStopping = false,
+                    lastMessage = outcome.message
+                )
+            }
+            refresh()
+        }
+    }
+
     fun openApp() {
         val intent = context.packageManager.getLaunchIntentForPackage(packageName) ?: return
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -89,6 +109,7 @@ class AppDetailViewModel(
         private val appRepository: AppRepository,
         private val policyRepository: PolicyRepository,
         private val getHistory: GetHistoryUseCase,
+        private val stopApp: StopAppUseCase,
         private val context: Context
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
@@ -99,6 +120,7 @@ class AppDetailViewModel(
                     appRepository,
                     policyRepository,
                     getHistory,
+                    stopApp,
                     context
                 ) as T
             }

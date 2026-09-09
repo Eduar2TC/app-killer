@@ -67,8 +67,8 @@ class NotificationHelper(private val context: Context) {
             .setContentText("$appName ($packageName) has reappeared")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
-            .addAction(android.R.drawable.ic_menu_info_details, "Review", reviewPendingIntent)
-            .addAction(android.R.drawable.ic_menu_delete, "Process", processPendingIntent)
+            .addAction(android.R.drawable.ic_menu_info_details, "Open info", reviewPendingIntent)
+            .addAction(android.R.drawable.ic_menu_delete, "Stop", processPendingIntent)
             .build()
 
         notificationManager.notify(notificationId, notification)

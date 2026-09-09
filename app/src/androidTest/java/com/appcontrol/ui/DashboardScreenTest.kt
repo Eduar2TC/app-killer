@@ -57,7 +57,7 @@ class DashboardScreenTest {
         deps.appRepository.seed(listOf(selectedApp("com.a", "Alpha"), selectedApp("com.b", "Beta")))
         setContent()
 
-        waitForText("Process Apps")
+        waitForText("Stop Apps")
 
         composeRule.onNodeWithText("APP CONTROL").assertExists()
         composeRule.onNodeWithText("2 apps monitored").assertExists()
@@ -71,14 +71,20 @@ class DashboardScreenTest {
     @Test
     fun dashboard_processApps_showsResultMessage() {
         deps.appRepository.seed(listOf(selectedApp("com.a", "Alpha"), selectedApp("com.b", "Beta")))
+        deps.activityEventRepository.latestByPackage["com.a"] = ActivityEvent(
+            packageName = "com.a",
+            timestamp = System.currentTimeMillis(),
+            eventType = EventType.APP_ACTIVE,
+            source = "test"
+        )
         setContent()
 
-        waitForText("Process Apps")
+        waitForText("Stop Apps")
 
-        composeRule.onNodeWithText("Process Apps").performClick()
+        composeRule.onNodeWithText("Stop Apps").performClick()
 
-        waitForText("Processed 2 of 2 apps")
-        composeRule.onNodeWithText("Processed 2 of 2 apps").assertExists()
+        waitForText("Stopped 1 of 2 apps")
+        composeRule.onNodeWithText("Stopped 1 of 2 apps").assertExists()
     }
 
     @Test

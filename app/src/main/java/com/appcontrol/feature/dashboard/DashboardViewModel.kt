@@ -77,10 +77,15 @@ class DashboardViewModel(
             _state.update { it.copy(isProcessing = true) }
             monitorAppActivity.invoke()
             val result = processSelectedApps.invoke()
+            val message = when {
+                result.failed > 0 -> "Stopped ${result.stopped}; ${result.failed} failed"
+                result.stopped > 0 -> "Stopped ${result.stopped} of ${result.total} apps"
+                else -> "Nothing to stop"
+            }
             _state.update {
                 it.copy(
                     isProcessing = false,
-                    lastMessage = "Processed ${result.processed} of ${result.total} apps"
+                    lastMessage = message
                 )
             }
             load()
